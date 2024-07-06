@@ -6,5 +6,6 @@
 
 *.out
 .idea
+.venv
 
 .env
