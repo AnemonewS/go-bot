@@ -1,35 +1,41 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"log"
 	tgClient "telegram-go/client/telegram"
 	event_consumer "telegram-go/consumer/event-consumer"
 	"telegram-go/events/telegram"
-	"telegram-go/storage/files"
+	"telegram-go/storage/postgresql"
 )
 
 const (
-	tgHost      = "api.telegram.org"
-	storagePath = "media"
-	batchSize   = 100
+	tgHost         = "api.telegram.org"
+	postgresqlPath = "user=postgres dbname=pqgotest sslmode=disable"
+	batchSize      = 100
 )
 
+// TODO: improve error handling
 func main() {
+	//s := files.New(storagePath)
+	s, err := postgresql.New(postgresqlPath)
+	if err != nil {
+		log.Fatalf("can't connect to the database", err)
+	}
+	if err := s.InitDatabase(context.TODO()); err != nil {
+		log.Fatalf("can't initialize the database", err)
+	}
+
 	processor := telegram.New(
 		tgClient.New(tgHost, mustToken()),
-		files.New(storagePath),
+		s,
 	)
 	log.Printf("Service started")
 	consumer_ := event_consumer.New(processor, processor, batchSize)
 	if err := consumer_.Start(); err != nil {
 		log.Fatal("Service is stopped", err)
 	}
-	// client = telegram.New(host, token) - Общается с АПИ ТГ
-	// fetcher = fetcher.New() - Обращается к АПИ ТГ и получает сообщения
-	// processor = processor.New() - Обрабатывает полученные сообщения и отдаем нам ссылки
-	// consumer.Start(fetcher, processor) - Получает и обрабатывает события
-
 }
 
 func mustToken() string {
