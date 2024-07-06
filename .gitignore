@@ -7,5 +7,7 @@
 *.out
 .idea
 .venv
-
+.media/
+media/
+telegram-go
 .env

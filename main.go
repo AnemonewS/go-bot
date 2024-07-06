@@ -1,4 +1,4 @@
-package telegram_go
+package main
 
 import (
 	"flag"
@@ -11,7 +11,7 @@ import (
 
 const (
 	tgHost      = "api.telegram.org"
-	storagePath = "storage"
+	storagePath = "media"
 	batchSize   = 100
 )
 
@@ -34,7 +34,7 @@ func main() {
 
 func mustToken() string {
 	token := flag.String(
-		"token-bot-token",
+		"tg-bot-token",
 		"",
 		"Telegram API access token",
 	)

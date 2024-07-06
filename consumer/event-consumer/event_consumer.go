@@ -33,6 +33,10 @@ func (c *Consumer) Start() error {
 			time.Sleep(1 * time.Second)
 			continue
 		}
+		if err := c.handleEvents(updateEvents); err != nil {
+			log.Printf(err.Error())
+			continue
+		}
 	}
 }
 
