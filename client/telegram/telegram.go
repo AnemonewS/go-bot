@@ -21,6 +21,7 @@ type Client struct {
 	client   http.Client
 }
 
+// New creates a new Client with the provided host and token.
 func New(host string, token string) *Client {
 	return &Client{
 		host:     host,
@@ -39,7 +40,7 @@ func (c *Client) Updates(offset, limit int) (updates []Update, err error) {
 	query.Add("limit", strconv.Itoa(limit))
 
 	// Make request
-	data, err := c.doRequest(getUpdatesMethod, query)
+	data, err := c.makeRequest(getUpdatesMethod, query)
 	if err != nil {
 		return nil, err
 	}
@@ -55,15 +56,15 @@ func (c *Client) SendMessage(chatId int, text string) error {
 	query.Add("chat_id", strconv.Itoa(chatId))
 	query.Add("text", text)
 
-	_, err := c.doRequest(sendMessageMethod, query)
+	_, err := c.makeRequest(sendMessageMethod, query)
 	if err != nil {
 		return e.WrapError("can't send message", err)
 	}
 	return nil
 }
 
-func (c *Client) doRequest(method string, query url.Values) (data []byte, err error) {
-	defer func() { err = e.WrapIfErr("doRequest func: can't do request", err) }()
+func (c *Client) makeRequest(method string, query url.Values) (data []byte, err error) {
+	defer func() { err = e.WrapIfErr("makeRequest func: can't do request", err) }()
 
 	url_ := url.URL{
 		Scheme: "https",

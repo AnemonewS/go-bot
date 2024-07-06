@@ -5,7 +5,7 @@ import (
 	"log"
 	tgClient "telegram-go/client/telegram"
 	event_consumer "telegram-go/consumer/event-consumer"
-	"telegram-go/event/telegram"
+	"telegram-go/events/telegram"
 	"telegram-go/storage/files"
 )
 

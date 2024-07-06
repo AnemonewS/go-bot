@@ -3,13 +3,13 @@ package telegram
 import (
 	"errors"
 	"telegram-go/client/telegram"
-	"telegram-go/event"
+	"telegram-go/events"
 	"telegram-go/lib/e"
 	"telegram-go/storage"
 )
 
 var (
-	UnknownEventTypeError = errors.New("unknown event type")
+	UnknownEventTypeError = errors.New("unknown events type")
 	UnknownMetaTypeError  = errors.New("unknown meta type")
 )
 
@@ -32,7 +32,7 @@ func New(client *telegram.Client, s storage.Storage) *Processor {
 	}
 }
 
-func (p *Processor) Fetch(limit int) ([]event.Event, error) {
+func (p *Processor) Fetch(limit int) ([]events.Event, error) {
 	updates, err := p.tgClient.Updates(p.offset, limit)
 	if err != nil {
 		return nil, e.WrapError("can't fetch updates", err)
@@ -40,7 +40,7 @@ func (p *Processor) Fetch(limit int) ([]event.Event, error) {
 	if len(updates) == 0 {
 		return nil, nil
 	}
-	res := make([]event.Event, 0, len(updates))
+	res := make([]events.Event, 0, len(updates))
 
 	for _, update := range updates {
 		res = append(res, makeEvent(update))
@@ -49,14 +49,14 @@ func (p *Processor) Fetch(limit int) ([]event.Event, error) {
 	return res, nil
 }
 
-func makeEvent(update telegram.Update) event.Event {
+func makeEvent(update telegram.Update) events.Event {
 	updateType := fetchType(update)
 
-	res := event.Event{
+	res := events.Event{
 		Type: fetchType(update),
 		Text: fetchText(update),
 	}
-	if updateType == event.Message {
+	if updateType == events.Message {
 		res.Meta = Meta{
 			update.Message.Chat.ID,
 			update.Message.From.Username,
@@ -65,11 +65,11 @@ func makeEvent(update telegram.Update) event.Event {
 	return res
 }
 
-func fetchType(update telegram.Update) event.Type {
+func fetchType(update telegram.Update) events.Type {
 	if update.Message == nil {
-		return event.Unknown
+		return events.Unknown
 	}
-	return event.Message
+	return events.Message
 }
 
 func fetchText(update telegram.Update) string {
@@ -79,9 +79,9 @@ func fetchText(update telegram.Update) string {
 	return update.Message.Text
 }
 
-func (p *Processor) Process(ev event.Event) error {
+func (p *Processor) Process(ev events.Event) error {
 	switch ev.Type {
-	case event.Message:
+	case events.Message:
 		return p.ProcessMessage(ev)
 	default:
 		return e.WrapError("can't process message", UnknownEventTypeError)
@@ -89,7 +89,7 @@ func (p *Processor) Process(ev event.Event) error {
 
 }
 
-func (p *Processor) ProcessMessage(ev event.Event) error {
+func (p *Processor) ProcessMessage(ev events.Event) error {
 	meta, err := prepareMeta(ev)
 
 	if err != nil {
@@ -102,7 +102,7 @@ func (p *Processor) ProcessMessage(ev event.Event) error {
 
 }
 
-func prepareMeta(ev event.Event) (Meta, error) {
+func prepareMeta(ev events.Event) (Meta, error) {
 	meta, ok := ev.Meta.(Meta)
 
 	if !ok {
